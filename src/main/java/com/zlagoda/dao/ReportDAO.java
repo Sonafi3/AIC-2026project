@@ -10,6 +10,11 @@ public class ReportDAO {
 
     public List<String[]> getCategorySalesByPeriod(Timestamp startDate, Timestamp endDate) {
         List<String[]> results = new ArrayList<>();
+        // Запит №1 для звіту: Продажі за категоріями за обраний період
+        // Об'єднує 5 таблиць (Category -> Product -> Store_Product -> Sale -> Receipt),
+        // фільтрує чеки за датою через BETWEEN за допомогою
+        // параметрів користувача та групує результати за назвою категорії.
+        // Функція SUM() підраховує точну кількість проданих одиниць у кожній групі.
         String sql = "SELECT c.category_name, SUM(s.product_number) AS total_sold " +
                 "FROM Category c " +
                 "INNER JOIN Product p ON c.category_number = p.category_number " +
@@ -75,6 +80,12 @@ public class ReportDAO {
     // Товари, які купували абсолютно всі VIP-клієнти (власники карток)
     public List<String[]> getProductsBoughtByAllVipCustomers() {
         List<String[]> data = new ArrayList<>();
+        // Запит №2 для звіту: Пошук якірних товарів, які купили ВСІ VIP-клієнти
+        // Знаходить товари масового попиту серед постійних покупців.
+        // Запит групує продажі за товарами, рахує кількість унікальних карток
+        // клієнтів, які цей товар купили (COUNT(DISTINCT card_number)), і виводить
+        // лише ті товари, де це число дорівнює повній кількості карток у базі даних
+        // (результату підзапиту SELECT COUNT(*) FROM Customer_Card).
         String query = "SELECT p.id_product, p.product_name " +
                 "FROM Sale s " +
                 "INNER JOIN Receipt r ON s.check_number = r.check_number " +

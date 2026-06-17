@@ -11,6 +11,8 @@ public class ProductDAO {
 
     public List<Product> getAllProducts() {
         List<Product> products = new ArrayList<>();
+        // Повертає список усіх товарів супермаркету, відсортованих
+        // за назвою в алфавітному порядку (ASC)
         String query = "SELECT * FROM Product ORDER BY product_name ASC";
         try (Connection conn = Database.getConnection();
                 Statement stmt = conn.createStatement();
@@ -20,7 +22,7 @@ public class ProductDAO {
                         rs.getInt("id_product"),
                         rs.getInt("category_number"),
                         rs.getString("product_name"),
-                        rs.getString("producer"), // Зчитуємо виробника
+                        rs.getString("producer"),
                         rs.getString("characteristics")));
             }
         } catch (SQLException e) {
@@ -30,6 +32,7 @@ public class ProductDAO {
     }
 
     public boolean addProduct(Product product) {
+        // Додаємо запис у таблицю Product
         String query = "INSERT INTO Product (id_product, category_number, product_name, producer, characteristics) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = Database.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(query)) {
@@ -52,6 +55,9 @@ public class ProductDAO {
     }
 
     public boolean updateProduct(Product product) {
+        // UPDATE за первинним ключем (id_product)
+        // Оновлює назву, виробника, категорію та характеристики товару.
+        // Первинний ключ (ID) не змінюється
         String query = "UPDATE Product SET category_number = ?, product_name = ?, producer = ?, characteristics = ? WHERE id_product = ?";
         try (Connection conn = Database.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(query)) {

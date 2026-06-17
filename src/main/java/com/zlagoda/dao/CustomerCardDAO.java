@@ -77,7 +77,12 @@ public class CustomerCardDAO {
 
     // Видалення карти клієнта (з безпечним збереженням історії чеків)
     public boolean deleteCustomerCard(String cardNumber) {
-        // Згідно зі схемою бази, card_number в Receipt може бути NULL
+        // Анулювання (видалення) дисконтної картки клієнта
+        // UPDATE + DELETE
+        // Щоб не порушувати цілісність даних,
+        // запит спочатку ставить card_number = NULL в усіх чеках, де фігурувала
+        // ця картка (історія покупок при цьому зберігається), а потім видаляє
+        // саму картку з таблиці Customer_Card.
         String updateReceiptsQuery = "UPDATE Receipt SET card_number = NULL WHERE card_number = ?";
         String deleteCardQuery = "DELETE FROM Customer_Card WHERE card_number = ?";
 

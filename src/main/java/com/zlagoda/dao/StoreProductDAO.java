@@ -77,6 +77,12 @@ public class StoreProductDAO {
 
     // Видалення товару з магазину (або зняття з продажу, якщо він є у чеках)
     public boolean deleteStoreProduct(String upc) {
+        // Зняття товару з продажу (видалення з полиць магазину)
+        // Soft Delete на основі логічної перевірки SELECT
+        // Спочатку через SELECT COUNT(*) перевіряється, чи продавався
+        // цей товар (чи є він у чеках). Якщо ТАК — виконується UPDATE (кількість
+        // стає 0), щоб товар зник з каси, але зберігся у старих чеках покупців.
+        // Якщо НІ (товар новий і не продавався) — виконується фізичний DELETE.
         String checkSaleQuery = "SELECT COUNT(*) FROM Sale WHERE UPC = ?";
         String updateQuantityQuery = "UPDATE Store_Product SET products_number = 0 WHERE UPC = ?";
         String deleteQuery = "DELETE FROM Store_Product WHERE UPC = ?";

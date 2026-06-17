@@ -11,6 +11,14 @@ import java.util.List;
 public class ReceiptDAO {
 
     public boolean addReceiptWithSales(Receipt receipt, List<Sale> sales) {
+        // Оформлення покупки (створення чека та запис проданих товарів)
+        // Алгоритм дій:
+        // 1. Створюється "шапка" чека в таблиці Receipt.
+        // 2. У циклі записуються всі куплені товари в таблицю Sale.
+        // 3. Для кожного проданого товару одразу робиться UPDATE таблиці
+        // Store_Product (віднімається продана кількість від залишку на полиці).
+        // Якщо хоча б на одному етапі стається збій (наприклад не вистачає товару),
+        // спрацьовує ROLLBACK, і чек повністю скасовується.
         String insertReceiptQuery = "INSERT INTO Receipt (check_number, id_employee, card_number, print_date, sum_total, vat) VALUES (?, ?, ?, ?, ?, ?)";
         String insertSaleQuery = "INSERT INTO Sale (UPC, check_number, product_number, selling_price) VALUES (?, ?, ?, ?)";
         String updateStoreProductQuery = "UPDATE Store_Product SET products_number = products_number - ? WHERE UPC = ?";
@@ -84,6 +92,10 @@ public class ReceiptDAO {
     public List<com.zlagoda.model.Receipt> getReceiptsByCashierAndPeriod(String idEmployee, java.sql.Timestamp start,
             java.sql.Timestamp end) {
         List<com.zlagoda.model.Receipt> receipts = new ArrayList<>();
+        // Фільтрація чеків конкретного касира за обраний час
+        // Використовується касиром у вкладці "Історія чеків" для
+        // перегляду своєї зміни. Відбирає лише ті чеки, які пробив поточний
+        // співробітник (id_employee = ?) у межах визначених дат (BETWEEN ? AND ?).
         String sql = "SELECT * FROM Receipt WHERE id_employee = ? AND print_date >= ? AND print_date <= ? ORDER BY print_date DESC";
 
         try (Connection conn = Database.getConnection();
@@ -112,6 +124,10 @@ public class ReceiptDAO {
 
     public List<String[]> getSalesDetailsByCheck(String checkNumber) {
         List<String[]> details = new ArrayList<>();
+        // Перегляд детального складу конкретного чека
+        // Щоб менеджер побачив не просто штрих-коди, а нормальні
+        // назви товарів, запит об'єднує таблиці Sale (продажі), Store_Product
+        // (партія на касі) та Product (довідник з іменами)
         String sql = "SELECT p.product_name, s.product_number, s.selling_price, (s.product_number * s.selling_price) AS row_total "
                 +
                 "FROM Sale s " +
@@ -139,9 +155,12 @@ public class ReceiptDAO {
         return details;
     }
 
-    // Отримати взагалі всі чеки (для Менеджера)
+    // Отримати взагалі всі чеки (для менеджера)
     public List<com.zlagoda.model.Receipt> getAllReceipts() {
         List<com.zlagoda.model.Receipt> receipts = new ArrayList<>();
+        // Отримання історії всіх чеків супермаркету
+        // SELECT із сортуванням за датою
+        // Сортує чеки від найновіших до найстаріших (DESC) за часом друку
         String sql = "SELECT * FROM Receipt ORDER BY print_date DESC";
 
         try (Connection conn = Database.getConnection();
@@ -165,6 +184,10 @@ public class ReceiptDAO {
 
     // Видалення чека за номером (для Менеджера)
     public boolean deleteReceipt(String checkNumber) {
+        // Фізичний DELETE
+        // Видаляє запис із таблиці Receipt. На рівні бази даних для
+        // таблиці Sale (Продані товари) налаштовано ON DELETE CASCADE,
+        // тому всі товари, що належали цьому чеку, видаляються автоматично.
         String sql = "DELETE FROM Receipt WHERE check_number = ?";
         try (Connection conn = Database.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {

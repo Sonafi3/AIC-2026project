@@ -154,6 +154,9 @@ public class EmployeeDAO {
 
     // Редагування (оновлення) даних працівника
     public boolean updateEmployee(Employee emp) {
+        // UPDATE за первинним ключем (id_employee)
+        // Використовується менеджером для зміни анкети підлеглого
+        // або касиром для самостійного оновлення контактів (телефон, адреса)
         String query = "UPDATE Employee SET empl_surname=?, empl_name=?, empl_patronymic=?, empl_role=?, salary=?, date_of_birth=?, date_of_start=?, phone_number=?, city=?, street=?, zip_code=? WHERE id_employee=?";
         try (Connection conn = Database.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(query)) {

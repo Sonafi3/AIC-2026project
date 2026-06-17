@@ -25,6 +25,8 @@ public class CategoryDAO {
     // Запит з сортуванням за назвою згідно з вимогами
     public List<Category> getAllCategories() {
         List<Category> categories = new ArrayList<>();
+        // Отримання списку всіх категорій
+        // Витягує всі категорії товарів з бази даних
         String query = "SELECT * FROM Category ORDER BY category_name ASC";
         try (Connection conn = Database.getConnection();
                 Statement stmt = conn.createStatement();
