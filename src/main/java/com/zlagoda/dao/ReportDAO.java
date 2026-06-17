@@ -81,11 +81,6 @@ public class ReportDAO {
     public List<String[]> getProductsBoughtByAllVipCustomers() {
         List<String[]> data = new ArrayList<>();
         // Запит №2 для звіту: Пошук якірних товарів, які купили ВСІ VIP-клієнти
-        // Знаходить товари масового попиту серед постійних покупців.
-        // Запит групує продажі за товарами, рахує кількість унікальних карток
-        // клієнтів, які цей товар купили (COUNT(DISTINCT card_number)), і виводить
-        // лише ті товари, де це число дорівнює повній кількості карток у базі даних
-        // (результату підзапиту SELECT COUNT(*) FROM Customer_Card).
         String query = "SELECT p.id_product, p.product_name " +
                 "FROM Product p " +
                 "WHERE NOT EXISTS ( " +
