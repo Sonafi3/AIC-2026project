@@ -87,13 +87,19 @@ public class ReportDAO {
         // лише ті товари, де це число дорівнює повній кількості карток у базі даних
         // (результату підзапиту SELECT COUNT(*) FROM Customer_Card).
         String query = "SELECT p.id_product, p.product_name " +
-                "FROM Sale s " +
-                "INNER JOIN Receipt r ON s.check_number = r.check_number " +
-                "INNER JOIN Store_Product sp ON s.UPC = sp.UPC " +
-                "INNER JOIN Product p ON sp.id_product = p.id_product " +
-                "WHERE r.card_number IS NOT NULL " +
-                "GROUP BY p.id_product, p.product_name " +
-                "HAVING COUNT(DISTINCT r.card_number) = (SELECT COUNT(*) FROM Customer_Card)";
+                "FROM Product p " +
+                "WHERE NOT EXISTS ( " +
+                "    SELECT cc.card_number " +
+                "    FROM Customer_Card cc " +
+                "    WHERE NOT EXISTS ( " +
+                "        SELECT 1 " +
+                "        FROM Receipt r " +
+                "        INNER JOIN Sale s ON r.check_number = s.check_number " +
+                "        INNER JOIN Store_Product sp ON s.UPC = sp.UPC " +
+                "        WHERE sp.id_product = p.id_product " +
+                "          AND r.card_number = cc.card_number " +
+                "    ) " +
+                ")";
 
         try (Connection conn = com.zlagoda.util.Database.getConnection();
                 Statement stmt = conn.createStatement();
